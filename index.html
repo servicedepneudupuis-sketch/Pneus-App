@@ -1,130 +1,24 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pneus Villemaire PRO</title>
-
-<style>
-body{
-  font-family:Arial;
-  margin:0;
-  background:linear-gradient(135deg,#0f2027,#2c5364);
-  color:white;
-}
-.header{
-  text-align:center;
-  padding:15px;
-  background:#000;
-}
-.tabs{
-  display:flex;
-  background:#111;
-}
-.tab{
-  flex:1;
-  padding:15px;
-  text-align:center;
-  cursor:pointer;
-}
-.tab.active{
-  background:#00c6ff;
-}
-.section{display:none;padding:20px;}
-.section.active{display:block;}
-input,button{
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  border-radius:10px;
-  border:none;
-  font-size:16px;
-}
-input{color:black;}
-button{
-  background:#00c6ff;
-  color:white;
-  font-weight:bold;
-}
-.result{
-  margin-top:15px;
-  font-size:22px;
-  font-weight:bold;
-}
-</style>
-</head>
-
-<body>
-
-<div class="header">
-  <img src="Poids-Lourd-300x68.png" style="max-width:100%;">
-</div>
-
-<div class="tabs">
-  <div class="tab active" onclick="show('ag',this)">🚜 Agricole</div>
-  <div class="tab" onclick="show('gc',this)">🏗️ GC</div>
-  <div class="tab" onclick="show('conv',this)">🔄 Conversion</div>
-  <div class="tab" onclick="show('lest',this)">💧 Lestage</div>
-  <div class="tab" onclick="show('ratio',this)">⚙️ AV/ARR</div>
-</div>
-
-<div id="ag" class="section active">
-  <input id="ag_input" placeholder="380/85R24 ou 14.9-24">
-  <button onclick="calcAG()">Calculer</button>
-  <div id="res_ag" class="result"></div>
-</div>
-
-<div id="gc" class="section">
-  <input id="gc_input" placeholder="20.5">
-  <button onclick="calcGC()">Calculer</button>
-  <div id="res_gc" class="result"></div>
-</div>
-
-<div id="conv" class="section">
-  <input id="conv_input" placeholder="400">
-  <button onclick="convert()">Convertir</button>
-  <div id="res_conv" class="result"></div>
-</div>
-
-<div id="lest" class="section">
-  <input id="lest_input" placeholder="380/85R24 ou 14.9-24">
-  <button onclick="lestage()">Trouver</button>
-  <div id="res_lest" class="result"></div>
-</div>
-
-<div id="ratio" class="section">
-
-<h3>📊 Comparaison pneus</h3>
-<input id="p1" placeholder="OEM (ex: 14.9-24)">
-<input id="p2" placeholder="Nouveau (ex: 400/70R24)">
-<button onclick="comparePneus()">Comparer</button>
-
-<br><br>
-
-<h3>🚜 Ratio AVANT / ARRIÈRE</h3>
-<input id="avant" placeholder="Pneu avant">
-<input id="arriere" placeholder="Pneu arrière">
-<button onclick="calcRatio()">Calculer ratio</button>
-
-<br><br>
-
-<button onclick="resetAll()" style="background:red">🔄 Réinitialiser</button>
-
-<div id="res_ratio" class="result"></div>
-
-</div>
-
 <script>
 
-const conv={280:11.2,300:12.4,320:13.6,340:13.6,360:14.9,380:14.9,400:15.5,420:16.9,460:18.4,480:18.4,520:20.8};
+// =========================
+// ✅ CONVERSION
+// =========================
+const conv = {
+280:11.2,300:12.4,320:13.6,340:13.6,
+360:14.9,380:14.9,400:15.5,420:16.9,
+460:18.4,480:18.4,520:20.8
+};
 
 function mmToConv(mm){
  return conv[Math.round(mm)] || (mm/25.4);
 }
 
+// =========================
+// ✅ NORMALIZE COMPLET
+// =========================
 function normalize(val){
 
- val = val.toLowerCase().replace(" ", "");
+ val = val.toLowerCase().replace(/\s+/g,'');
 
  let m = val.match(/(\d+)\/\d+r(\d+(\.\d+)?)/);
  if(m) return mmToConv(m[1]).toFixed(1)+"-"+m[2];
@@ -138,6 +32,9 @@ function normalize(val){
  return val;
 }
 
+// =========================
+// ✅ CALCULS
+// =========================
 function calcAG(){
  let key=normalize(ag_input.value);
  let p=key.split("-");
@@ -156,28 +53,70 @@ function convert(){
  if(v) res_conv.innerText="≈ "+mmToConv(v);
 }
 
-// BASE LESTAGE
+// =========================
+// ✅ BASE LESTAGE COMPLETE + TES AJOUTS
+// =========================
+
 const data={
+
+// agricole
 "14.9-24":{gal:49,lbs:409},
 "16.9-28":{gal:72,lbs:575},
 "18.4-38":{gal:110,lbs:917},
+
+// gc / otr
 "20.5-25":{gal:90,lbs:751},
+"23.5-25":{gal:118,lbs:984},
 "26.5-25":{gal:159,lbs:1326},
 "29.5-25":{gal:207,lbs:1726},
-"12-16.5":{gal:16,lbs:133},
+
+// skid / industriel
 "10-16.5":{gal:12,lbs:100},
-"400/80r24":{gal:53,lbs:442}
+"12-16.5":{gal:16,lbs:133},
+
+// loader / l
+"21l-24":{gal:87,lbs:726},
+"19.5l-24":{gal:69,lbs:575},
+
+// haute pression / spécial
+"13.00-24":{gal:41,lbs:342},
+"14.00-24":{gal:51,lbs:425},
+
+// métrique direct
+"340/80r18":{gal:27,lbs:225},
+"500/70r24":{gal:70,lbs:583},
+"540/70r24":{gal:84,lbs:701},
+"400/80r24":{gal:53,lbs:442},
+"250/75r16":{gal:10,lbs:83},
+"250/80r16":{gal:12,lbs:100},
+
+// compact loader
+"12.5/80-18":{gal:27,lbs:225},
+"14-17.5":{gal:22,lbs:184},
+"15-19.5":{gal:30,lbs:270}
+
 };
 
+// =========================
+// ✅ LESTAGE
+// =========================
+
 function lestage(){
+
  let key=normalize(lest_input.value);
+
  if(data[key]){
   let d=data[key];
-  res_lest.innerText="💧 "+d.gal+" gal | ⚖️ "+d.lbs+" lbs";
- } else {
-  res_lest.innerText="❌ Non trouvé";
+  res_lest.innerText="💧 "+d.gal+" gal | ⚖️ "+d.lbs+" lbs ✅";
+  return;
  }
+
+ res_lest.innerText="❌ Non trouvé";
 }
+
+// =========================
+// ✅ DIAMÈTRE
+// =========================
 
 function getDiameter(size){
  let val=normalize(size);
@@ -186,7 +125,12 @@ function getDiameter(size){
  return (parseFloat(p[0])*0.85*2)+parseFloat(p[1]);
 }
 
+// =========================
+// ✅ COMPARATEUR
+// =========================
+
 function comparePneus(){
+
  let d1=getDiameter(p1.value);
  let d2=getDiameter(p2.value);
 
@@ -196,14 +140,27 @@ function comparePneus(){
  }
 
  let diff=((d2-d1)/d1)*100;
- let verdict=Math.abs(diff)<=3?"✅ Compatible":Math.abs(diff)<=5?"⚠️ Limite":"❌ Incompatible";
- let color=Math.abs(diff)<=3?"lime":Math.abs(diff)<=5?"orange":"red";
 
- res_ratio.innerHTML=`<span style="color:${color}">
- Écart: ${diff.toFixed(1)}%<br>${verdict}</span>`;
+ let verdict =
+ Math.abs(diff)<=3?"✅ Compatible":
+ Math.abs(diff)<=5?"⚠️ Limite":"❌ Incompatible";
+
+ let color =
+ Math.abs(diff)<=3?"lime":
+ Math.abs(diff)<=5?"orange":"red";
+
+ res_ratio.innerHTML=
+ `<span style="color:${color}">
+ Écart: ${diff.toFixed(1)}%<br>${verdict}
+ </span>`;
 }
 
+// =========================
+// ✅ RATIO AV / ARR
+// =========================
+
 function calcRatio(){
+
  let av=getDiameter(avant.value);
  let ar=getDiameter(arriere.value);
 
@@ -213,18 +170,36 @@ function calcRatio(){
  }
 
  let ratio=av/ar;
- let verdict=(ratio>=0.97&&ratio<=1.03)?"✅ Parfait":(ratio>=0.95&&ratio<=1.05)?"⚠️ Acceptable":"❌ Danger";
- let color=(ratio>=0.97&&ratio<=1.03)?"lime":(ratio>=0.95&&ratio<=1.05)?"orange":"red";
 
- res_ratio.innerHTML=`<span style="color:${color}">
- Ratio: ${ratio.toFixed(3)}<br>${verdict}</span>`;
+ let verdict =
+ (ratio>=0.97&&ratio<=1.03)?"✅ Parfait":
+ (ratio>=0.95&&ratio<=1.05)?"⚠️ Acceptable":
+ "❌ Danger transmission";
+
+ let color =
+ (ratio>=0.97&&ratio<=1.03)?"lime":
+ (ratio>=0.95&&ratio<=1.05)?"orange":
+ "red";
+
+ res_ratio.innerHTML=
+ `<span style="color:${color}">
+ Ratio: ${ratio.toFixed(3)}<br>${verdict}
+ </span>`;
 }
+
+// =========================
+// ✅ RESET
+// =========================
 
 function resetAll(){
  p1.value="";p2.value="";
  avant.value="";arriere.value="";
  res_ratio.innerText="";
 }
+
+// =========================
+// ✅ NAVIGATION
+// =========================
 
 function show(id,el){
  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
@@ -234,6 +209,4 @@ function show(id,el){
 }
 
 </script>
-
-</body>
-</html>
+``
